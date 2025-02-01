@@ -27,5 +27,5 @@ class Profile(models.Model):
         try:
             avatar = self.image.url
         except:
-            avatar = static('images/avatars.svg')
+            avatar = static('images/avatar.svg')
         return avatar
