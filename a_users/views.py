@@ -32,3 +32,8 @@ def profile_edit_view(request):
         onboarding = False
 
     return render(request, 'a_users/profile_edit.html', {'form':form, 'onboarding':onboarding})  
+
+
+@login_required
+def profile_settings_view(request):
+    return render(request, 'a_users/profile_settings.html')
