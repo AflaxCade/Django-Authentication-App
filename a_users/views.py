@@ -1,8 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.views import redirect_to_login
 from django.contrib.auth.decorators import login_required
+from allauth.account.utils import send_email_confirmation
+from django.contrib import messages
 from django.contrib.auth.models import User
-from .forms import ProfileForm
+from .forms import ProfileForm, EmailForm
 from django.urls import reverse
 
 # Create your views here.
@@ -37,3 +38,36 @@ def profile_edit_view(request):
 @login_required
 def profile_settings_view(request):
     return render(request, 'a_users/profile_settings.html')
+
+
+@login_required
+def profile_emailchange(request):
+    
+    if request.htmx:
+        form = EmailForm(instance=request.user)
+        return render(request, 'partials/email_form.html', {'form':form})
+    
+    if request.method == 'POST':
+        form = EmailForm(request.POST, instance=request.user)
+
+        if form.is_valid():
+            
+            # Check if the email already exists
+            email = form.cleaned_data['email']
+            if User.objects.filter(email=email).exclude(id=request.user.id).exists():
+                messages.warning(request, f'{email} is already in use.')
+                return redirect('profile-settings')
+            
+            form.save() 
+            
+            # Then Signal updates emailaddress and set verified to False
+            
+            # Then send confirmation email 
+            send_email_confirmation(request, request.user)
+            
+            return redirect('profile-settings')
+        else:
+            messages.warning(request, 'Form not valid')
+            return redirect('profile-settings')
+    
+    return redirect('home')
