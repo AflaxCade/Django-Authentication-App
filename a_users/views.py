@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from allauth.account.utils import send_email_confirmation
 from django.contrib import messages
 from django.contrib.auth.models import User
+from django.contrib.auth import logout
 from .forms import ProfileForm, EmailForm
 from django.urls import reverse
 
@@ -77,3 +78,15 @@ def profile_emailchange(request):
 def profile_emailverify(request):
     send_email_confirmation(request, request.user)
     return redirect('profile-settings')
+
+
+@login_required
+def profile_delete_view(request):
+    user = request.user
+    if request.method == "POST":
+        logout(request)
+        user.delete()
+        messages.success(request, 'Account deleted, what a pity')
+        return redirect('home')
+    
+    return render(request, 'a_users/profile_delete.html')
